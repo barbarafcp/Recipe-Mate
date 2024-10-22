@@ -10,7 +10,10 @@ const RecipeResults = ({ selectedIngredients }) => {
   const [error, setError] = useState('');
 
   const fetchRecipes = () => {
-    axios.post('http://127.0.0.1:8000/recommendation', { ingredient_list: selectedIngredients })
+    console.log("Ingredientes seleccionados:", selectedIngredients);
+    axios.post('http://localhost:8000/recommendation', {
+        ingredient_list: selectedIngredients
+      })
       .then(response => {
         setRecipes([response.data]);
         setError('');

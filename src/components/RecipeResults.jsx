@@ -4,6 +4,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Box, Button, Heading, Text, List, ListItem } from '@chakra-ui/react';
+import Cookies from 'js-cookie';
 
 const RecipeResults = ({ selectedIngredients }) => {
   const [recipes, setRecipes] = useState([]);
@@ -12,7 +13,8 @@ const RecipeResults = ({ selectedIngredients }) => {
   const fetchRecipes = () => {
     console.log("Ingredientes seleccionados:", selectedIngredients);
     axios.post('http://localhost:8000/recommendation', {
-        ingredient_list: selectedIngredients
+        ingredient_list: selectedIngredients,
+        token: Cookies.get('authToken'),
       })
       .then(response => {
         setRecipes([response.data]);

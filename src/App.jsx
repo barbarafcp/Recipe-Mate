@@ -4,9 +4,11 @@ import Cookies from 'js-cookie';
 import IngredientSelector from './components/IngredientSelector';
 import RecipeResults from './components/RecipeResults';
 import AuthPage from './components/AuthPage';
+import Historial from './components/Historial';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showHistorial, setShowHistorial] = useState(false);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
 
   useEffect(() => {
@@ -21,23 +23,42 @@ function App() {
     setIsAuthenticated(false);
   };
 
+  const handleShowHistorial = () => {
+    setShowHistorial(!showHistorial);
+  }
+
   return (
     <Box minH="100vh" bg="gray.50" p="8">
       {!isAuthenticated ? (
         <AuthPage setIsAuthenticated={setIsAuthenticated} />
       ) : (
         <>
-          <Flex align="center" mb="4">
-            <Spacer />
+          <Flex gap={5} justify="right" align="center" mb="4">
+            {!showHistorial ? (
+              <Button onClick={handleShowHistorial}>
+                Historial
+              </Button>
+            ) : (
+              <Button onClick={handleShowHistorial}>
+                Buscar recetas
+              </Button>
+            )}
             <Button colorScheme="red" onClick={handleLogout}>
               Cerrar sesión
             </Button>
           </Flex>
-          <IngredientSelector
-            selectedIngredients={selectedIngredients}
-            setSelectedIngredients={setSelectedIngredients}
-          />
-          <RecipeResults selectedIngredients={selectedIngredients} />
+          {!showHistorial ? (
+            <>
+              <IngredientSelector
+                selectedIngredients={selectedIngredients}
+                setSelectedIngredients={setSelectedIngredients}
+              />
+              <RecipeResults selectedIngredients={selectedIngredients} />
+            </>
+          ) : (
+            <Historial />
+          )}
+          
         </>
       )}
     </Box>

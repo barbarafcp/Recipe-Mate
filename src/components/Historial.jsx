@@ -1,7 +1,6 @@
 // src/components/Historial.jsx
 
 import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Box, Heading, Text, List, ListItem } from '@chakra-ui/react';
 import Cookies from 'js-cookie';
@@ -11,13 +10,14 @@ const Historial = () => {
   const [error, setError] = useState('');
 
   const fetchRecipes = () => {
-    token = Cookies.get('authToken');
-    console.log(token);
+    const token = Cookies.get('authToken');
     axios.get('http://localhost:8000/historial', {
-        token: Cookies.get('authToken'),
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
       .then(response => {
-        setRecipes([response.data]);
+        setRecipes(response.data.data);
         setError('');
       })
       .catch(err => {
@@ -51,9 +51,6 @@ const Historial = () => {
       ))}
     </Box>
   );
-};
-Historial.propTypes = {
-  selectedIngredients: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 export default Historial;

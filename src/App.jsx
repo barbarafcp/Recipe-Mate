@@ -1,5 +1,7 @@
+// src/App.jsx
+
 import { useState, useEffect } from 'react';
-import { Box, Button, Flex, Spacer } from '@chakra-ui/react';
+import { Box, Button, Flex } from '@chakra-ui/react';
 import Cookies from 'js-cookie';
 import IngredientSelector from './components/IngredientSelector';
 import RecipeResults from './components/RecipeResults';

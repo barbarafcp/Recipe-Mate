@@ -1,6 +1,6 @@
 // src/components/RecipeResults.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Box, Button, Heading, Text, List, ListItem } from '@chakra-ui/react';
@@ -8,16 +8,16 @@ import Cookies from 'js-cookie';
 
 const RecipeResults = ({ selectedIngredients }) => {
   const [recipes, setRecipes] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [error, setError] = useState('');
 
   const fetchRecipes = () => {
-    console.log("Ingredientes seleccionados:", selectedIngredients);
     axios.post('http://localhost:8000/recommendation', {
-        ingredient_list: selectedIngredients,
-        token: Cookies.get('authToken'),
-      })
+      ingredient_list: selectedIngredients,
+      token: Cookies.get('authToken'),
+    })
       .then(response => {
-        setRecipes([response.data]);
+        setRecipes(response.data);
         setError('');
       })
       .catch(err => {
@@ -28,6 +28,50 @@ const RecipeResults = ({ selectedIngredients }) => {
         }
       });
   };
+
+  const fetchFavorites = () => {
+    axios.get('http://localhost:8000/favorites', {
+      headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+    })
+      .then(response => {
+        setFavorites(response.data);
+      })
+      .catch(err => {
+        console.error('Error al cargar favoritos:', err);
+      });
+  };
+
+  const toggleFavorite = (recipe) => {
+    const isFavorite = favorites.some((fav) => fav.recipe_id === recipe.recipe_id);
+
+    if (isFavorite) {
+      // Remove from favorites
+      axios.delete(`http://localhost:8000/favorites/${recipe.recipe_id}`, {
+        headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+      })
+        .then(() => {
+          setFavorites(favorites.filter((fav) => fav.recipe_id !== recipe.recipe_id));
+        })
+        .catch(err => {
+          console.error('Error al quitar de favoritos:', err);
+        });
+    } else {
+      // Add to favorites
+      axios.post('http://localhost:8000/favorites', recipe, {
+        headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+      })
+        .then(() => {
+          setFavorites([...favorites, recipe]);
+        })
+        .catch(err => {
+          console.error('Error al agregar a favoritos:', err);
+        });
+    }
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
 
   return (
     <Box maxW="lg" mx="auto" mt="8" p="6" bg="white" shadow="md" rounded="md">
@@ -47,11 +91,19 @@ const RecipeResults = ({ selectedIngredients }) => {
               <ListItem key={index}>{ingredient}</ListItem>
             ))}
           </List>
+          <Button
+            mt="4"
+            colorScheme={favorites.some((fav) => fav.recipe_id === recipe.recipe_id) ? 'red' : 'blue'}
+            onClick={() => toggleFavorite(recipe)}
+          >
+            {favorites.some((fav) => fav.recipe_id === recipe.recipe_id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          </Button>
         </Box>
       ))}
     </Box>
   );
 };
+
 RecipeResults.propTypes = {
   selectedIngredients: PropTypes.arrayOf(PropTypes.string).isRequired,
 };

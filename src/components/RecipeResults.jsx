@@ -7,7 +7,7 @@ import { Box, Button, Heading, Text, List, ListItem } from '@chakra-ui/react';
 import Cookies from 'js-cookie';
 
 const RecipeResults = ({ selectedIngredients }) => {
-  const [recipes, setRecipes] = useState([]);
+  const [recipe, setRecipe] = useState();
   const [favorites, setFavorites] = useState([]);
   const [error, setError] = useState('');
 
@@ -17,7 +17,25 @@ const RecipeResults = ({ selectedIngredients }) => {
       token: Cookies.get('authToken'),
     })
       .then(response => {
-        setRecipes(response.data);
+        setRecipe(response.data);
+        setError('');
+      })
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setError('No se encontraron recetas con los ingredientes proporcionados.');
+        } else {
+          console.error('Error al obtener recetas:', err);
+        }
+      });
+  };
+
+  const fetchRecipesWithAI = () => {
+    axios.post('http://localhost:8000/generate-recipe', {
+      ingredients: selectedIngredients,
+      token: Cookies.get('authToken'),
+    })
+      .then(response => {
+        setRecipe(response.data);
         setError('');
       })
       .catch(err => {
@@ -57,8 +75,9 @@ const RecipeResults = ({ selectedIngredients }) => {
         });
     } else {
       // Add to favorites
-      axios.post('http://localhost:8000/favorites', recipe, {
-        headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+      axios.post('http://localhost:8000/favorites', {
+        recipe_id: recipe.recipe_id,
+        token: Cookies.get('authToken')
       })
         .then(() => {
           setFavorites([...favorites, recipe]);
@@ -78,28 +97,36 @@ const RecipeResults = ({ selectedIngredients }) => {
       <Button colorScheme="blue" w="full" mb="4" onClick={fetchRecipes}>
         Buscar Recetas
       </Button>
+      <Button colorScheme="blue" w="full" mb="4" onClick={fetchRecipesWithAI}>
+        Buscar Recetas con AI
+      </Button>
 
       {error && <Text color="red.500" mt="4">{error}</Text>}
 
-      {recipes.map((recipe) => (
+      
+      {recipe && (
         <Box key={recipe.recipe_id} mt="4" p="4" bg="gray.100" rounded="md">
           <Heading as="h3" size="md">{recipe.title}</Heading>
           <Text mt="2">{recipe.instructions}</Text>
-          <Heading as="h4" size="sm" mt="4">Ingredientes:</Heading>
-          <List spacing={2} mt="2">
-            {recipe.ingredients.map((ingredient, index) => (
-              <ListItem key={index}>{ingredient}</ListItem>
-            ))}
-          </List>
-          <Button
+          {recipe.ingredients && (
+            <>
+              <Heading as="h4" size="sm" mt="4">Ingredientes:</Heading>
+              <List spacing={2} mt="2">
+                {recipe.ingredients.map((ingredient, index) => (
+                  <ListItem key={index}>{ingredient}</ListItem>
+                ))}
+              </List>
+            </>
+          )}
+          {/* <Button
             mt="4"
             colorScheme={favorites.some((fav) => fav.recipe_id === recipe.recipe_id) ? 'red' : 'blue'}
             onClick={() => toggleFavorite(recipe)}
           >
             {favorites.some((fav) => fav.recipe_id === recipe.recipe_id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-          </Button>
+          </Button> */}
         </Box>
-      ))}
+      )}
     </Box>
   );
 };

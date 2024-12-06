@@ -59,9 +59,6 @@ Agrega una receta a la lista de favoritos del usuario autenticado.
 ```json
 {
   "recipe_id": 1,
-  "title": "Ensalada César",
-  "instructions": "Mezcla todos los ingredientes.",
-  "ingredients": ["Lechuga", "Pollo", "Aderezo César"]
 }
 ```
 

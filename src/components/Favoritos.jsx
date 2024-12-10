@@ -1,46 +1,41 @@
-import { Box, Heading, List, ListItem, Button, Text } from '@chakra-ui/react';
-import PropTypes from 'prop-types';
+// src/components/Favorites.jsx
 
-const Favoritos = ({ favorites, setFavorites }) => {
-  const handleRemoveFromFavorites = (recipeId) => {
-    setFavorites((prev) => prev.filter((fav) => fav.recipe_id !== recipeId));
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import RecipeList from './RecipeList';
+
+const Favorites = () => {
+  const [recipes, setRecipes] = useState([]);
+  const [error, setError] = useState('');
+
+  const fetchRecipes = () => {
+    const token = Cookies.get('authToken');
+    axios.get('http://localhost:8000/favorites', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(response => {
+        setRecipes(response.data.data);
+        setError('');
+      })
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setError('Error al obtener las recetas favoritas');
+        } else {
+          console.error('Error al obtener recetas:', err);
+        }
+      });
   };
 
+  useEffect(() => {
+    fetchRecipes();
+  }, [])
+
   return (
-    <Box maxW="lg" mx="auto" p="6" bg="white" shadow="md" rounded="md">
-      <Heading as="h2" size="lg" mb="4" textAlign="center">
-        Favoritos
-      </Heading>
-      {favorites.length === 0 ? (
-        <Text>No hay recetas favoritas.</Text>
-      ) : (
-        <List spacing={4}>
-          {favorites.map((recipe) => (
-            <ListItem key={recipe.recipe_id} p="4" bg="gray.100" rounded="md">
-              <Heading as="h3" size="md">{recipe.title}</Heading>
-              <Button
-                mt="2"
-                colorScheme="red"
-                onClick={() => handleRemoveFromFavorites(recipe.recipe_id)}
-              >
-                Quitar de favoritos
-              </Button>
-            </ListItem>
-          ))}
-        </List>
-      )}
-    </Box>
+    <RecipeList recipes={recipes} listName={'Favoritos'} error={error} />
   );
 };
 
-Favoritos.propTypes = {
-  favorites: PropTypes.arrayOf(
-    PropTypes.shape({
-      recipe_id: PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  setFavorites: PropTypes.func.isRequired,
-};
-
-export default Favoritos;
+export default Favorites;

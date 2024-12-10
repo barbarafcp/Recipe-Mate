@@ -69,10 +69,7 @@ const AppRoutes = () => {
               <Route
                 path="/favoritos"
                 element={
-                  <Favoritos
-                    favorites={favorites}
-                    setFavorites={setFavorites}
-                  />
+                  <Favoritos />
                 }
               />
             </Routes>
